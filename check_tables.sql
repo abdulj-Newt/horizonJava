@@ -1,0 +1,4 @@
+SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING ON ECHO OFF
+SELECT table_name FROM user_tables;
+SELECT sequence_name FROM user_sequences;
+EXIT;

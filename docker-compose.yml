@@ -1,0 +1,44 @@
+services:
+  oracle-db:
+    image: gvenzl/oracle-free:23-slim
+    container_name: customer-service-oracle
+    environment:
+      ORACLE_PASSWORD: oracle
+      APP_USER: appuser
+      APP_USER_PASSWORD: appuser
+    ports:
+      - "1521:1521"
+    volumes:
+      - ./init-scripts:/container-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "healthcheck.sh || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+    networks:
+      - dmap-network
+
+  customer-service:
+    build: .
+    container_name: customer-service-app
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:oracle:thin:@oracle-db:1521/FREEPDB1
+      SPRING_DATASOURCE_USERNAME: appuser
+      SPRING_DATASOURCE_PASSWORD: appuser
+    ports:
+      - "8083:8083"
+    restart: on-failure
+    networks:
+      - dmap-network
+
+volumes:
+  oracle-data:
+
+networks:
+  dmap-network:
+    external: true
+    name: dmap-network
